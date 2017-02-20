@@ -1,0 +1,42 @@
+version: '2.1'
+services:
+  nginx_rancher:
+    build: ./nginx
+    hostname: nginx_rancher
+    ports:
+     - "80:80"
+    links:
+     - rancher
+    restart: always
+  rancher:
+    image: rancher/server:${RANCHER_VERSION}
+    ports:
+     - "8080:8080"
+    restart: always
+    hostname: rancher_server
+    links:
+     - database_rancher
+    container_name: rancher_server
+    environment:
+     - CATTLE_DB_CATTLE_MYSQL_HOST=${CATTLE_DB_CATTLE_MYSQL_HOST}
+     - CATTLE_DB_CATTLE_MYSQL_NAME=${CATTLE_DB_CATTLE_MYSQL_NAME}
+     - CATTLE_DB_CATTLE_USERNAME=${CATTLE_DB_CATTLE_USERNAME}
+     - CATTLE_DB_CATTLE_MYSQL_PORT=${CATTLE_DB_CATTLE_MYSQL_PORT}
+     - CATTLE_DB_CATTLE_PASSWORD=${CATTLE_DB_CATTLE_PASSWORD}
+    depends_on:
+      database_rancher:
+        condition: service_started
+  database_rancher:
+    hostname: database_rancher
+    container_name: database_rancher
+    image: mysql:latest
+    ports:
+     - "3306:3306"
+    restart: always
+    environment:
+     - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+     - MYSQL_DATABASE=${MYSQL_DATABASE}
+     - MYSQL_USER=${MYSQL_USER}
+     - MYSQL_PASSWORD=${CATTLE_DB_CATTLE_PASSWORD}
+    volumes:
+     - ${DB_VOLUME}:/var/lib/mysql
